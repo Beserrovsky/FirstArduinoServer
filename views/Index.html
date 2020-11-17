@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8"/>
+	<title>ArduinoServer</title>
+	<link rel="icon" href="/Images/Logo.png">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+	<link rel="stylesheet" href="/ClientStyles/MatrixStyle.css"/>
+</head>
+<body>
+	<nav class="navbar navbar-dark bg-dark">
+		<a class="navbar-brand" href="#">
+			<img src="/Images/Logo.png" width="30" height="30" class="d-inline-block align-top" alt="">
+			&nbsp Beses' Arduino Server
+		</a>
+		<form id="Deslogar" class="form-inline">
+			<button id="BTNlogout" class="btn btn-outline-danger">Sair</button>
+		</form>
+		<form id="Logar" class="form-inline">
+			<div class="dropdown">
+				<button class="btn btn-outline-success dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					Entrar
+				</button>
+				<div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenu2">
+					<form class="dropdown-menu p-4">
+					<div class="form-group mx-3">
+						<label for="exampleDropdownFormEmail2">Usuário</label>
+						<input type="text" class="form-control" id="TXTlogin" placeholder="Insira seu usuário" style="margin-top:0.2vw;">
+					</div>
+					<div class="form-group mx-3">
+						<label for="exampleDropdownFormPassword2" style="margin-top:0.3vw;">Senha</label>
+						<input type="password" class="form-control" id="TXTpassword" placeholder="Insira sua senha" style="margin-top:0.2vw;"> 
+					</div>
+					<div class="form-group mx-3" style="margin-top:0.7vw;"> 
+						<div class="form-check">
+						<input type="checkbox" class="form-check-input" id="dropdownCheck2"> 
+						<label class="form-check-label" for="dropdownCheck2">
+							Lembrar de mim
+						</label>
+						</div>
+					</div>
+					<button id="BTNlogin" type="submit" class="btn btn-success" style="margin-left:1vw; margin-top:0.5vw;">Entrar</button> 
+					</form>
+				</div>
+			</div>
+		</form>
+	</nav>  
+	<br><br>
+	<div class="container" style="background-color:white; border-radius:10px; padding:1vw">
+		<div class="row">
+			<div class="col">
+				<div class="form-group">
+					<h4 style="margin-left:13vw;"> Arduino Console </h4>
+					<form class="form-inline" style="margin-left:9.6vw; margin-top:1.5vw;">
+						<div class="form-group mx-sm-3 mb-2">
+							<input type="text" class="form-control" id="TXTcmd" placeholder="Comando">
+						</div>
+						<button id="BTNsendCommand" class="btn btn-primary">Enviar</button>
+					</form> 
+				</div>
+			</div>
+			<div class="col"> 
+				<center> <h4 style="margin-right:9.6vw;"> Comandos Predefinidos </h4> </center>
+			</div>
+		</div>
+	</div> 
+	<div class="container" style="margin-top:1vw; background-color:white; border-radius:10px; padding:1vw">
+		<div class="row">
+			<div class="col">
+				<center>Arduino LOG</center>
+				<hr>
+				<div class="overflow-auto"><pre class="overflow-auto"><pre id="log"></pre></div>
+			</div>
+			<div class="col">
+				<center>Area do desenho :)</center>
+				<hr>
+				<center> <div id="grade">
+					
+				</div> </center>
+				<br>
+				<center> 
+					<button id="BTNclearGradeDots" class="btn btn-primary">Limpar</button>
+					<button id="BTNsendGradeDots" class="btn btn-primary">Desenhar</button> 
+				</center>
+			</div>
+		</div>
+	</div>
+	<script src="/ClientScripts/GeneralScript.js"></script>
+	<script src="/ClientScripts/MatrixScript.js"></script>
+	<script src="/ClientScripts/xhrScript.js"></script>
+	<script>
+		if(!document.cookies){document.cookies="userId=0";}
+		createGrade();
+		updateLog();
+		updateLogin();
+		
+		function updateLogin(){
+			verifyLogin(getId(),function(){
+				document.getElementById('Logar').style.display="none";
+				document.getElementById('Deslogar').style.display="flex";
+			},function(){
+				document.getElementById('Logar').style.display="flex";
+				document.getElementById('Deslogar').style.display="none";
+			});
+		}
+		function checkLogin(){
+			verifyLogin(getId(),function(){alert("Você está logado!")},function(){alert("Você está deslogado!")});
+		}
+		
+		document.getElementById("BTNlogin").addEventListener("click",function(e){
+			login(document.getElementById('TXTlogin').value,document.getElementById('TXTpassword').value);
+			setTimeout(updateLogin,500);
+		},false);
+		
+		document.getElementById("BTNlogout").addEventListener("click",function(e){
+			logout();
+			setTimeout(updateLogin,500);
+		},false);
+		
+		
+		document.getElementById("BTNsendCommand").addEventListener("click",function(e){
+			
+			var c = document.getElementById('TXTcmd').value;
+			document.getElementById('TXTcmd').value = "";
+			verifyLogin(getId(),function(){
+				sendCommand(c);
+				alert("Comando enviado");
+			},function(){alert("Você precisa estar logado!")});
+			
+		},false);
+	
+		
+		document.getElementById("BTNsendGradeDots").addEventListener("click",function(e){
+			verifyLogin(getId(),function(){
+				sendCommand('D'+getGradeDots());
+				alert("Desenho enviado");
+			},function(){alert("Você precisa estar logado!")});
+		},false);
+		
+		document.getElementById("BTNclearGradeDots").addEventListener("click",function(e){
+			clean();
+		},false);
+		
+	</script>
+	<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+</body>
+</html>
